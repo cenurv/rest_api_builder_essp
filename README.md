@@ -17,7 +17,7 @@ project in Hex.
 
 ```elixir
 def deps do
-  [{:rest_api_builder_essp, "~> 0.5.0"}]
+  [{:rest_api_builder_essp, "~> 0.5"}]
 end
 ```
 
