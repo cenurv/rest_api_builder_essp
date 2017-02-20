@@ -1,6 +1,6 @@
-# REST API Builder Provider
+# REST API Builder - Ecto Schema Store Provider
 
-Ecto Schema Store now implements an API resource provider for the `rest_api_builder` project. This provider allows a
+An API resource provider for the `rest_api_builder` project. This provider allows a
 developer to back a rest service using a store provided by this library.
 
 [REST API Builder](https://hex.pm/packages/rest_api_builder)
