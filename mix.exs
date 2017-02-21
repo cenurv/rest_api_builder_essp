@@ -1,7 +1,7 @@
 defmodule RestApiBuilderEssp.Mixfile do
   use Mix.Project
 
-  @version "0.5.1"
+  @version "0.5.2"
 
   def project do
     [app: :rest_api_builder_essp,

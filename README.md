@@ -48,7 +48,7 @@ end
 defmodule CustomersApi do
   use RestApiBuilder, plural_name: :customers, singular_name: :customer, activate: :all
 
-  provider EctoSchemaStore.ApiProvider, store: CustomerStore
+  provider RestApiBuilder.EctoSchemaStoreProvider, store: CustomerStore
 end
 
 ```
@@ -68,9 +68,9 @@ In addition, the provider also adds a command to the REST API module that allows
 defmodule CustomersApi do
   use RestApiBuilder, plural_name: :customers, singular_name: :customer, activate: :all
 
-  provider EctoSchemaStore.ApiProvider, store: CustomerStore,
-                                        soft_delete: {:account_closed, true},
-                                        exclude: [:account_closed]
+   provider RestApiBuilder.EctoSchemaStoreProvider, store: CustomerStore,
+                                                    soft_delete: {:account_closed, true},
+                                                    exclude: [:account_closed]
 
   changeset :create_changeset, :create
   changeset :update_changeset, :update
@@ -83,9 +83,9 @@ By default, the standard name of :changset is used like normal within the store 
 defmodule CustomersApi do
   use RestApiBuilder, plural_name: :customers, singular_name: :customer, activate: :all
 
-  provider EctoSchemaStore.ApiProvider, store: CustomerStore,
-                                        soft_delete: {:account_closed, true},
-                                        exclude: [:account_closed]
+  provider RestApiBuilder.EctoSchemaStoreProvider, store: CustomerStore,
+                                                   soft_delete: {:account_closed, true},
+                                                   exclude: [:account_closed]
 
   changeset nil
 end
@@ -97,9 +97,9 @@ You can also provide a default changeset for both create and update:
 defmodule CustomersApi do
   use RestApiBuilder, plural_name: :customers, singular_name: :customer, activate: :all
 
-  provider EctoSchemaStore.ApiProvider, store: CustomerStore,
-                                        soft_delete: {:account_closed, true},
-                                        exclude: [:account_closed]
+  provider RestApiBuilder.EctoSchemaStoreProvider, store: CustomerStore,
+                                                   soft_delete: {:account_closed, true},
+                                                   exclude: [:account_closed]
 
   changeset :api_changeset
 end
@@ -113,9 +113,9 @@ defmodule CustomersApi do
   use RestApiBuilder, plural_name: :customers, singular_name: :customer, activate: :all, default_plugs: false
   import Plug.Conn
 
-  provider EctoSchemaStore.ApiProvider, store: CustomerStore,
-                                        soft_delete: {:account_closed, true},
-                                        exclude: [:account_closed]
+  provider RestApiBuilder.EctoSchemaStoreProvider, store: CustomerStore,
+                                                   soft_delete: {:account_closed, true},
+                                                   exclude: [:account_closed]
 
   plugs do
     plug :check_access_level
