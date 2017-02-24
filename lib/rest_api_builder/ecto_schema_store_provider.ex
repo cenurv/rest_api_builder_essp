@@ -66,7 +66,7 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
       end
       defp append_exclude_deleted(params), do: params
 
-      def preload(%Plug.Conn{path_params: %{"id" => id}, assigns: assigns} = conn) do
+      def handle_preload(%Plug.Conn{path_params: %{"id" => id}, assigns: assigns} = conn) do
         parent_field = unquote(parent_field)
         resources = assigns[:resources]
 
@@ -100,20 +100,20 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
         end
       end
 
-      def show(%Plug.Conn{assigns: %{current: model}} = conn) do
+      def handle_show(%Plug.Conn{assigns: %{current: model}} = conn) do
         case conn.assigns.current do
           nil -> send_errors conn, 404, "Not Found"
           model -> send_resource conn, whitelist(unquote(store).to_map(model))
         end
       end
-      def show(conn), do: send_errors conn, 404, "Not Found"
+      def handle_show(conn), do: send_errors conn, 404, "Not Found"
 
-      def index(conn) do
+      def handle_index(conn) do
         records = fetch_all conn
         send_resource conn, whitelist(unquote(store).to_map(records))
       end
 
-      def create(%Plug.Conn{assigns: assigns} = conn) do
+      def handle_create(%Plug.Conn{assigns: assigns} = conn) do
         parent_field = unquote(parent_field)
         parent = assigns[:current]
         changeset = __use_changeset__ conn, :create
@@ -134,7 +134,7 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
         end
       end
 
-      def update(%Plug.Conn{assigns: assigns} = conn) do
+      def handle_update(%Plug.Conn{assigns: assigns} = conn) do
         current = assigns[:current]
 
         case current do
@@ -150,7 +150,7 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
         end
       end
 
-      def delete(%Plug.Conn{assigns: assigns} = conn) do
+      def handle_delete(%Plug.Conn{assigns: assigns} = conn) do
         current = assigns[:current]
 
         case current do
@@ -173,7 +173,8 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
 
       def __use_changeset__(_, _), do: :changeset
 
-      defoverridable [__use_changeset__: 2, index: 1, show: 1, create: 1, update: 1, delete: 1]
+      defoverridable [__use_changeset__: 2, handle_index: 1, handle_show: 1,
+                      handle_create: 1, handle_update: 1, handle_delete: 1]
     end
   end
 

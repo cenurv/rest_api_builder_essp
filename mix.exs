@@ -1,7 +1,7 @@
 defmodule RestApiBuilderEssp.Mixfile do
   use Mix.Project
 
-  @version "0.5.2"
+  @version "0.6.0"
 
   def project do
     [app: :rest_api_builder_essp,
@@ -43,7 +43,7 @@ defmodule RestApiBuilderEssp.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:ex_doc, "~> 0.14", only: [:docs, :dev]},
-     {:rest_api_builder, "~> 0.5"},
+     {:rest_api_builder, "~> 0.6"},
      {:ecto_schema_store, "~> 1.8"}]
   end
 end
