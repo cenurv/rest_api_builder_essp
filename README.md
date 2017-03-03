@@ -129,3 +129,38 @@ defmodule CustomersApi do
   changeset :standard_user_changeset
 end
 ```
+
+## Customizing the JSON Output content ##
+
+The generation of the final message envelope is handled by the `rest_api_builder` library. However, this library does generate the map content
+that is used and set for record output. To give better control to the developer, the `render_view_map` function can be overloaded to customize
+the output.
+
+By default `render_view_map` does the following:
+
+```elixir
+ def render_view_map(record), do: whitelist(MyStore.to_map(record))
+```
+
+`whitelist` is function that filters Map content to the fields defined by the `include` and `exclude` settings of this provider. This function
+can be added to your resource module in order to append or completly replace how the output map is built. You will recieve the original
+Ecto model as input. This function will be applied on index, show, create, update actions. If you are defining a feature, you will need to
+call this function manually.
+
+```elixir
+defmodule CustomersApi do
+  use RestApiBuilder, plural_name: :customers, singular_name: :customer, activate: :all
+
+  provider RestApiBuilder.EctoSchemaStoreProvider, store: CustomerStore
+
+  def render_view_map(customer) do
+    customer = Map.take customer, [:name, :email]
+
+    if customer.account_closed do
+      Map.put customer, :note, "This account is closed."
+    else
+      Map.put customer, :note, "This account is active."
+    end
+  end
+end
+```

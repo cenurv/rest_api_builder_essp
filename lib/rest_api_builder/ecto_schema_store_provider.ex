@@ -103,14 +103,14 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
       def handle_show(%Plug.Conn{assigns: %{current: model}} = conn) do
         case conn.assigns.current do
           nil -> send_errors conn, 404, "Not Found"
-          model -> send_resource conn, whitelist(unquote(store).to_map(model))
+          model -> send_resource conn, render_view_map(model)
         end
       end
       def handle_show(conn), do: send_errors conn, 404, "Not Found"
 
       def handle_index(conn) do
         records = fetch_all conn
-        send_resource conn, whitelist(unquote(store).to_map(records))
+        send_resource conn, Enum.map(records, &render_view_map/1)
       end
 
       def handle_create(%Plug.Conn{assigns: assigns} = conn) do
@@ -130,7 +130,7 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
 
         case response do
           {:error, message} -> send_errors conn, 400, message
-          {:ok, record} -> send_resource conn, whitelist(unquote(store).to_map(record))
+          {:ok, record} -> send_resource conn, render_view_map(record)
         end
       end
 
@@ -145,7 +145,7 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
 
             case response do
               {:error, message} -> send_errors conn, 400, message
-              {:ok, record} -> send_resource conn, whitelist(unquote(store).to_map(record))
+              {:ok, record} -> send_resource conn, render_view_map(record)
             end
         end
       end
@@ -172,9 +172,11 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
       end
 
       def __use_changeset__(_, _), do: :changeset
+      def render_view_map(record), do: whitelist(unquote(store).to_map(record))
 
       defoverridable [__use_changeset__: 2, handle_index: 1, handle_show: 1,
-                      handle_create: 1, handle_update: 1, handle_delete: 1]
+                      handle_create: 1, handle_update: 1, handle_delete: 1,
+                      render_view_map: 1]
     end
   end
 
