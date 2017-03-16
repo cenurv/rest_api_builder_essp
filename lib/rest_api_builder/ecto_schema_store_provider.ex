@@ -1,6 +1,47 @@
 defmodule RestApiBuilder.EctoSchemaStoreProvider do
   use RestApiBuilder.Provider
 
+  defp has_field?(field, settings), do: field in settings.store.schema_fields
+
+  defp load_settings(opts) do
+    {soft_delete_field, soft_delete_value} = Keyword.get opts, :soft_delete, {:deleted, true}
+
+    %{
+      store: Keyword.get(opts, :store, nil),
+      parent_field: Keyword.get(opts, :parent, nil),
+      soft_delete_field: soft_delete_field,
+      soft_delete_value: soft_delete_value,
+      include: Keyword.get(opts, :include, []),
+      exclude: Keyword.get(opts, :exclude, []),
+      preload: Keyword.get(opts, :preload, []),
+    }
+  end
+
+  @doc """
+  Delete resource.
+  """
+  def handle_delete(%Plug.Conn{assigns: assigns} = conn, resource, opts \\ []) do
+    settings = load_settings opts
+    current = assigns[:current]
+
+    case current do
+      nil -> resource.send_errors conn, 404, "Not Found"
+      model ->
+        if has_field?(settings.soft_delete_field, settings) do
+          current = assigns[:current]
+          response = settings.store.update_fields(current, Keyword.put([], settings.soft_delete_field, settings.soft_delete_value), errors_to_map: resource.singular_name)
+
+          case response do
+              {:error, message} -> resource.send_errors conn, 400, message
+              {:ok, _record} -> resource.send_resource conn, nil
+          end
+        else
+          settings.store.delete model
+          resource.send_resource conn, nil
+        end
+    end
+  end
+
   defmacro generate(opts) do
     store = Keyword.get opts, :store, nil
     parent_field = Keyword.get opts, :parent, nil
@@ -150,33 +191,13 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
         end
       end
 
-      def handle_delete(%Plug.Conn{assigns: assigns} = conn) do
-        current = assigns[:current]
 
-        case current do
-          nil -> send_errors conn, 404, "Not Found"
-          model ->
-            if has_field?(unquote(soft_delete_field)) do
-              current = assigns[:current]
-              response = unquote(store).update_fields(current, Keyword.put([], unquote(soft_delete_field), unquote(soft_delete_value)), errors_to_map: singular_name())
-
-              case response do
-                  {:error, message} -> send_errors conn, 400, message
-                  {:ok, record} -> send_resource conn, nil
-              end
-            else
-              unquote(store).delete model
-              send_resource conn, nil
-            end
-        end
-      end
 
       def __use_changeset__(_, _), do: :changeset
       def render_view_map(record), do: whitelist(unquote(store).to_map(record))
 
       defoverridable [__use_changeset__: 2, handle_index: 1, handle_show: 1,
-                      handle_create: 1, handle_update: 1, handle_delete: 1,
-                      render_view_map: 1]
+                      handle_create: 1, handle_update: 1, render_view_map: 1]
     end
   end
 
