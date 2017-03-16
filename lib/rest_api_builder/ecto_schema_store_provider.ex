@@ -194,63 +194,11 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
 
   defmacro generate(opts) do
     store = Keyword.get opts, :store, nil
-    # parent_field = Keyword.get opts, :parent, nil
-    # {soft_delete_field, soft_delete_value} = Keyword.get opts, :soft_delete, {:deleted, true}
-    # include = Keyword.get opts, :include, []
-    # exclude = Keyword.get opts, :exclude, []
-    # preload = Keyword.get opts, :preload, []
-
-
 
     quote do
       import RestApiBuilder.EctoSchemaStoreProvider
 
       def store, do: unquote(store)
-
-      # defp whitelist(models) when is_list models do
-      #   Enum.map models, fn(model) -> whitelist model end
-      # end
-      # defp whitelist(model) do
-      #   keys = EctoSchemaStore.Utils.keys unquote(store).schema
-      #   include = unquote(include)
-      #   exclude = unquote(exclude)
-
-      #   keys =
-      #     keys
-      #     |> Enum.concat(include)
-      #     |> Enum.reject(&(&1 in exclude))
-
-      #   Map.take model, keys
-      # end
-
-      # defp fetch_all(%Plug.Conn{assigns: %{current: parent}} = conn) do
-      #   parent_field = unquote(parent_field)
-
-      #   if parent && parent_field do
-      #     query =
-      #       []
-      #       |> append_exclude_deleted
-      #       |> Keyword.put(parent_field, parent.id)
-
-      #     unquote(store).all query, preload: unquote(preload) 
-      #   else
-      #     unquote(store).all append_exclude_deleted([]), preload: unquote(preload) 
-      #   end
-      # end
-      # defp fetch_all(conn) do
-      #   unquote(store).all append_exclude_deleted([]), preload: unquote(preload) 
-      # end
-
-      # defp has_field?(field), do: field in unquote(store).schema_fields
-
-      # defp append_exclude_deleted(params_list) when is_list params_list do
-      #   if has_field?(unquote(soft_delete_field)) do
-      #     Keyword.put params_list, unquote(soft_delete_field), {:!=, unquote(soft_delete_value)}
-      #   else
-      #     params_list
-      #   end
-      # end
-      # defp append_exclude_deleted(params), do: params
 
       def __use_changeset__(_, _), do: :changeset
       def render_view_map(record), do: provider().whitelist(unquote(store).to_map(record), unquote(opts))
