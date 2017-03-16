@@ -18,6 +18,51 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
   end
 
   @doc """
+  Whitelist the contents of the record to be returned to only the direct fields.
+  """
+  def whitelist(models, opts) when is_list models do
+    Enum.map models, fn(model) -> whitelist model, opts end
+  end
+  def whitelist(model, opts) do
+    settings = load_settings opts
+    keys = EctoSchemaStore.Utils.keys settings.store.schema
+    include = settings.include
+    exclude = settings.exclude
+
+    keys =
+      keys
+      |> Enum.concat(include)
+      |> Enum.reject(&(&1 in exclude))
+
+    Map.take model, keys
+  end
+
+  @doc """
+  Create a record.
+  """
+  def handle_create(%Plug.Conn{assigns: assigns} = conn, resource, opts \\ []) do
+    settings = load_settings opts
+    parent_field = settings.parent_field
+    parent = assigns[:current]
+    changeset = resource.__use_changeset__ conn, :create
+
+    params =
+      if parent && parent_field do
+        conn.body_params
+        |> Map.put(parent_field, parent.id)
+      else
+        conn.body_params
+      end
+
+    response = settings.store.insert params, changeset: changeset, errors_to_map: resource.singular_name()
+
+    case response do
+      {:error, message} -> resource.send_errors conn, 400, message
+      {:ok, record} -> resource.send_resource conn, resource.render_view_map(record)
+    end
+  end
+
+  @doc """
   Delete resource.
   """
   def handle_delete(%Plug.Conn{assigns: assigns} = conn, resource, opts \\ []) do
@@ -154,27 +199,6 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
         send_resource conn, Enum.map(records, &render_view_map/1)
       end
 
-      def handle_create(%Plug.Conn{assigns: assigns} = conn) do
-        parent_field = unquote(parent_field)
-        parent = assigns[:current]
-        changeset = __use_changeset__ conn, :create
-
-        params =
-          if parent && parent_field do
-            conn.body_params
-            |> Map.put(parent_field, parent.id)
-          else
-            conn.body_params
-          end
-
-        response = unquote(store).insert params, changeset: changeset, errors_to_map: singular_name()
-
-        case response do
-          {:error, message} -> send_errors conn, 400, message
-          {:ok, record} -> send_resource conn, render_view_map(record)
-        end
-      end
-
       def handle_update(%Plug.Conn{assigns: assigns} = conn) do
         current = assigns[:current]
 
@@ -191,13 +215,11 @@ defmodule RestApiBuilder.EctoSchemaStoreProvider do
         end
       end
 
-
-
       def __use_changeset__(_, _), do: :changeset
-      def render_view_map(record), do: whitelist(unquote(store).to_map(record))
+      def render_view_map(record), do: provider().whitelist(unquote(store).to_map(record), unquote(opts))
 
       defoverridable [__use_changeset__: 2, handle_index: 1, handle_show: 1,
-                      handle_create: 1, handle_update: 1, render_view_map: 1]
+                      handle_update: 1, render_view_map: 1]
     end
   end
 
